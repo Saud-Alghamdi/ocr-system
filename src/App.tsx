@@ -5,7 +5,7 @@ import ResultPage from "./pages/ResultPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ocr-system/">
       <Routes>
         <Route
           path="/"
