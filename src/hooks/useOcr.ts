@@ -7,16 +7,28 @@ export function useOcr(navigate: NavigateFunction) {
 
   const processFile = async (file: File) => {
     setIsLoading(true);
-    const worker = await createWorker("eng");
+
+    // Initialize workers for English and Arabic
+    const engWorker = await createWorker("eng");
+    const araWorker = await createWorker("ara");
+
     try {
-      const {
-        data: { text },
-      } = await worker.recognize(file);
-      navigate("/result", { state: { extractedText: text } });
+      // Process the file with both workers
+      const [engResult, araResult] = await Promise.all([engWorker.recognize(file), araWorker.recognize(file)]);
+
+      // Determine which result to use based on confidence or other metrics
+      let finalText;
+      if (engResult.data.confidence > araResult.data.confidence) {
+        finalText = engResult.data.text;
+      } else {
+        finalText = araResult.data.text;
+      }
+
+      navigate("/result", { state: { extractedText: finalText } });
     } catch (error) {
       console.error("OCR processing failed", error);
     } finally {
-      await worker.terminate();
+      await Promise.all([engWorker.terminate(), araWorker.terminate()]);
       setIsLoading(false);
     }
   };
